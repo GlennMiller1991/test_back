@@ -3,13 +3,8 @@ using Dto;
 using MessageValidators;
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
-using Telegram.Bot;
-
-// var bot = new TelegramBotClient("");
+using WebApplication1.Services.AdminNotifier;
+using WebApplication1.Services.TgClient;
 
 var portfolioOrigin = new Origin("portfolio", "http://localhost:3000");
 var builder = WebApplication.CreateBuilder(args);
@@ -26,6 +21,9 @@ builder.Services.AddCors(opts =>
     });
 });
 
+builder.Services.AddSingleton<TgClient, TgClient>();
+builder.Services.AddSingleton<IAdminNotifier, TgAdminNotifier>();
+
 var app = builder.Build();
 
 app.UseExceptionHandler("/error");
@@ -41,9 +39,8 @@ app.MapPost("/api/v1/messages", async (MessageDto dto) =>
         id++;
         var message = new FrontMessage(id.ToString(), dto.Author, dto.Email, dto.Subject, dto.Body);
 
-        // var chat = await bot.GetChat();
-        // await bot.SendMessage(chat, $"{message.Author} said: {message.Body}\n\nEmail: {message.Email}");
-
+        app.Services.GetService<IAdminNotifier>()
+            ?.SendMessage($"{message.Author} said: {message.Body}\n\nEmail: {message.Email}");
 
         return messages.TryAdd(message.Id, message)
             ? TypedResults.Created($"/api/v1/messages/{dto.Id}", dto)
