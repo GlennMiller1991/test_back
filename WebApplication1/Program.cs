@@ -6,8 +6,10 @@ using System.Text.RegularExpressions;
 using WebApplication1.Services.AdminNotifier;
 using WebApplication1.Services.TgClient;
 
+
 var portfolioOrigin = new Origin("portfolio", "http://localhost:3000");
 var builder = WebApplication.CreateBuilder(args);
+
 int id = 1;
 
 builder.Services.AddCors(opts =>
@@ -28,7 +30,6 @@ var app = builder.Build();
 
 app.UseExceptionHandler("/error");
 app.UseCors(portfolioOrigin.Key);
-
 
 var messages = new ConcurrentDictionary<string, FrontMessage>();
 
