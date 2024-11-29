@@ -5,9 +5,12 @@ using WebApplication1.Services;
 using WebApplication1.Services.AdminNotifier;
 using WebApplication1.Services.TgClient;
 
-
-var portfolioOrigin = new Origin("portfolio", "http://localhost:3000");
 var builder = WebApplication.CreateBuilder(args);
+
+var origin = builder.Configuration.GetValue<string>("ORIGIN");
+if (string.IsNullOrEmpty(origin)) throw new Exception("Origin configuration is missing");
+
+var portfolioOrigin = new Origin("portfolio", origin);
 
 int id = 1;
 
@@ -48,6 +51,7 @@ app.MapPost("/api/v1/messages", async (MessageDto dto) =>
     })
     .AddEndpointFilter(MessageValidator.ValidateEmptyId)
     .AddEndpointFilter(MessageValidator.ValidateEmail);
+
 app.MapGet("/api/v1/messages", () => messages);
 
 app.MapGet("/api/v1/messages/{id}",
