@@ -1,8 +1,7 @@
-using Constants;
-using Dto;
-using MessageValidators;
 using System.Collections.Concurrent;
-using System.Text.RegularExpressions;
+using WebApplication1.models;
+using WebApplication1.models.message;
+using WebApplication1.Services;
 using WebApplication1.Services.AdminNotifier;
 using WebApplication1.Services.TgClient;
 
@@ -64,53 +63,3 @@ app.MapFallback(() => Results.NotFound());
 
 app.UseStaticFiles();
 app.Run();
-
-namespace Dto
-{
-    public record MessageDto(string? Id, string Author, string Email, string Subject, string Body);
-}
-
-namespace Constants
-{
-    public record Origin(string Key, string HostName);
-
-    public record FrontMessage(string Id, string Author, string Email, string Subject, string Body);
-
-    public record Error(string Message);
-
-    public record Empty();
-}
-
-namespace MessageValidators
-{
-    public static class MessageValidator
-    {
-        internal static async ValueTask<object?> ValidateEmptyId(
-            EndpointFilterInvocationContext context,
-            EndpointFilterDelegate next
-        )
-        {
-            var messageDto = context.GetArgument<MessageDto>(0);
-            if (!string.IsNullOrEmpty(messageDto.Id))
-            {
-                return Results.BadRequest(new Error("incorrect type"));
-            }
-
-            return await next(context);
-        }
-
-        internal static async ValueTask<object?> ValidateEmail(
-            EndpointFilterInvocationContext context,
-            EndpointFilterDelegate next)
-        {
-            var messageDto = context.GetArgument<MessageDto>(0);
-
-            if (!Regex.IsMatch(messageDto.Email, @"[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}", RegexOptions.IgnoreCase))
-            {
-                return Results.BadRequest(new Error("incorrect format"));
-            }
-
-            return await next(context);
-        }
-    }
-}
