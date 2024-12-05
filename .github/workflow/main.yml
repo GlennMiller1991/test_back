@@ -1,0 +1,59 @@
+name: Main
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  Deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run:  docker build -t ${{ vars.DOCKER_NAME }} --build-arg port=${{ secrets.APP_PORT }} .
+
+      - name: Save image as archive
+        run:  docker save ${{ vars.DOCKER_NAME }} -o ${{ vars.ARCHIVE_NAME }}
+
+      - name: Checkout archive
+        run: ls -lh ${{ vars.ARCHIVE_NAME }}
+
+      - name: Set archive permissions
+        run: chmod 644 ${{ vars.ARCHIVE_NAME }}
+
+      - name: Replace archive on the VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_KEY }}
+          source: ${{ vars.ARCHIVE_NAME }}
+          target: ${{ secrets.APP_HOME }}
+
+      - name: Deploy on the VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_KEY }}
+          script: |
+            docker load -i ${{ secrets.APP_HOME }}/${{ vars.ARCHIVE_NAME }}
+            
+            if [ "$(docker ps -q -f name=${{ vars.DOCKER_NAME }})" ] 
+              then
+                docker stop ${{ vars.DOCKER_NAME }}
+            fi
+
+            if [ "$(docker ps -a -q -f name=${{ vars.DOCKER_NAME }})" ]
+               then
+                docker rm ${{ vars.DOCKER_NAME }}
+            fi
+
+            sleep 5
+            
+            docker run --env port=${{ secrets.APP_PORT }} --name ${{ vars.DOCKER_NAME }} -p ${{ secrets.DOCKER_MAPPED_PORT }}:${{ secrets.APP_PORT }} -d --rm ${{ vars.DOCKER_NAME }} ${{ secrets.ENV_VAR }}
