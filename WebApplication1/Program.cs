@@ -35,7 +35,7 @@ app.MapGet("/api/v1", () =>
 {
     app.Services.GetService<IAdminNotifier>()
         ?.SendMessage("Someone come");    
-    return Results.NoContent;
+    return Results.NoContent();
 });
 app.MapPost("/api/v1/messages", async (MessageDto dto) =>
     {
