@@ -31,7 +31,12 @@ app.UseExceptionHandler("/api/v1/error");
 app.UseCors(portfolioOrigin.Key);
 
 app.MapGet("/api/v1/error", () => "Sorry! It seems that error is occured");
-app.MapGet("/api/v1", Results.NoContent);
+app.MapGet("/api/v1", () =>
+{
+    app.Services.GetService<IAdminNotifier>()
+        ?.SendMessage("Someone come");    
+    return Results.NoContent;
+});
 app.MapPost("/api/v1/messages", async (MessageDto dto) =>
     {
         app.Services.GetService<IAdminNotifier>()
