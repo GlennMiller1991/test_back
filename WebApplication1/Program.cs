@@ -27,10 +27,10 @@ builder.Services.AddSingleton<IAdminNotifier, TgAdminNotifier>();
 
 var app = builder.Build();
 
-app.UseExceptionHandler("/error");
+app.UseExceptionHandler("/api/v1/error");
 app.UseCors(portfolioOrigin.Key);
 
-app.MapGet("/error", () => "Sorry! It seems that error is occured");
+app.MapGet("/api/v1/error", () => "Sorry! It seems that error is occured");
 app.MapGet("/api/v1", Results.NoContent);
 app.MapPost("/api/v1/messages", async (MessageDto dto) =>
     {

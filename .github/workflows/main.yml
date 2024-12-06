@@ -15,7 +15,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build Docker image
-        run:  docker build -t ${{ vars.DOCKER_NAME }} --build-arg port=${{ secrets.APP_PORT }} .
+        run:  docker build -t ${{ vars.DOCKER_NAME }} .
 
       - name: Save image as archive
         run:  docker save ${{ vars.DOCKER_NAME }} -o ${{ vars.ARCHIVE_NAME }}
@@ -56,4 +56,4 @@ jobs:
 
             sleep 5
             
-            docker run --env port=${{ secrets.APP_PORT }} --name ${{ vars.DOCKER_NAME }} -p ${{ secrets.DOCKER_MAPPED_PORT }}:${{ secrets.APP_PORT }} -d --rm ${{ vars.DOCKER_NAME }} ${{ secrets.ADMIN_TELEGRAM_CHAT_ID }} ${{ secrets.TELEGRAM_BOT_TOKEN }} ${{ secrets.ORIGIN }}
+            docker run --name ${{ vars.DOCKER_NAME }} -p ${{ secrets.DOCKER_MAPPED_PORT }}:${{ secrets.APP_PORT }} -d --rm ${{ vars.DOCKER_NAME }} ${{ secrets.ADMIN_TELEGRAM_CHAT_ID }} ${{ secrets.TELEGRAM_BOT_TOKEN }} ${{ secrets.ORIGIN }} --urls=http://[::]:${{ secrets.APP_PORT }}
