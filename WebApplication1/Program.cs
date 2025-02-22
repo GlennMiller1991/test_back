@@ -1,7 +1,9 @@
+using Microsoft.EntityFrameworkCore;
 using WebApplication1.models;
 using WebApplication1.models.message;
 using WebApplication1.Services;
 using WebApplication1.Services.AdminNotifier;
+using WebApplication1.Services.GuestEntryService;
 using WebApplication1.Services.TgClient;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,6 +26,8 @@ builder.Services.AddCors(opts =>
 
 builder.Services.AddSingleton<TgClient, TgClient>();
 builder.Services.AddSingleton<IAdminNotifier, TgAdminNotifier>();
+builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite("Data Source=temporarily.db"));
+builder.Services.AddScoped<GuestEntryService>();
 
 var app = builder.Build();
 
@@ -31,13 +35,36 @@ app.UseExceptionHandler("/api/v1/error");
 app.UseCors(portfolioOrigin.Key);
 
 app.MapGet("/api/v1/error", () => "Sorry! It seems that error is occured");
-app.MapGet("/api/v1", () =>
+app.MapGet("/api/v1", async (
+    HttpContext context,
+    GuestEntryService entryService,
+    IAdminNotifier adminNotifier
+) =>
 {
-    app.Services.GetService<IAdminNotifier>()
-        ?.SendMessage("Someone come");    
+    var ip = context.Connection.RemoteIpAddress?.ToString();
+
+    if (!string.IsNullOrEmpty(ip))
+    {
+        var guestEntry = await entryService.GetGuestEntry(ip);
+
+        if (guestEntry is null)
+        {
+            await entryService.CreateGuestEntry(ip);
+            await entryService.GetGuestEntry(ip);
+            adminNotifier.SendMessage($"new entry, {ip}");
+        }
+        else
+        {
+            await entryService.UpdateGuestEntry(ip, DateTime.Now);
+            adminNotifier.SendMessage($"update entry, {ip}");
+        }
+
+    }
+    
     return Results.NoContent();
 });
-app.MapPost("/api/v1/messages", async (MessageDto dto) =>
+
+app.MapPost("/api/v1/messages", (MessageDto dto) =>
     {
         app.Services.GetService<IAdminNotifier>()
             ?.SendMessage($"{dto.Author} said: {dto.Body}\n\nEmail: {dto.Email}");

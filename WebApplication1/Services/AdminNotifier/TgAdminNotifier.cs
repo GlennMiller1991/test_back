@@ -17,6 +17,7 @@ public class TgAdminNotifier : IAdminNotifier
     public Task SendMessage(string message)
     {
         var chatId = _configuration.GetValue<string>("ADMIN_TELEGRAM_CHAT_ID");
+        Console.WriteLine(chatId);
         if (string.IsNullOrWhiteSpace(chatId)) return Task.CompletedTask;
 
         return _tgClient.Bot.GetChat(chatId)
