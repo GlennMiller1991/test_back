@@ -41,7 +41,11 @@ app.MapGet("/api/v1", async (
     IAdminNotifier adminNotifier
 ) =>
 {
-    var ip = context.Connection.RemoteIpAddress?.ToString();
+    var ip = context.Request.Headers["X-Forwarded-For"];
+    if (!string.IsNullOrEmpty(ip))
+    {
+        ip = context.Request.Headers["Real-IP"];
+    }
 
     if (!string.IsNullOrEmpty(ip))
     {
@@ -58,9 +62,8 @@ app.MapGet("/api/v1", async (
             await entryService.UpdateGuestEntry(ip, DateTime.Now);
             adminNotifier.SendMessage($"update entry, {ip}");
         }
-
     }
-    
+
     return Results.NoContent();
 });
 
