@@ -42,9 +42,9 @@ app.MapGet("/api/v1", async (
 ) =>
 {
     var ip = context.Request.Headers["X-Forwarded-For"];
-    if (!string.IsNullOrEmpty(ip))
+    if (string.IsNullOrEmpty(ip))
     {
-        ip = context.Request.Headers["Real-IP"];
+        ip = context.Request.Headers["X-Real-IP"];
     }
 
     if (!string.IsNullOrEmpty(ip))
