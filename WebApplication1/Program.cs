@@ -63,19 +63,26 @@ app.MapGet("/api/v1", async (
             adminNotifier.SendMessage($"update entry, {ip}");
         }
     }
+    else
+    {
+        adminNotifier.SendMessage("Someone come");
+    }
 
     return Results.NoContent();
 });
 
 app.MapPost("/api/v1/messages", (MessageDto dto) =>
     {
+        string backRoute = !string.IsNullOrEmpty(dto.Telegram) ? dto.Telegram : 
+            !string.IsNullOrEmpty(dto.Email) ? dto.Email : "something went wrong";
         app.Services.GetService<IAdminNotifier>()
-            ?.SendMessage($"{dto.Author} said: {dto.Body}\n\nEmail: {dto.Email}");
+            ?.SendMessage($"{dto.Author} said: {dto.Body}\n\backRoute: {backRoute}");
 
         return TypedResults.Created("", dto);
     })
     .AddEndpointFilter(MessageValidator.ValidateEmptyId)
-    .AddEndpointFilter(MessageValidator.ValidateEmail);
+    .AddEndpointFilter(MessageValidator.ValidateEmail)
+    .AddEndpointFilter(MessageValidator.ValidateTelegram);
 
 app.MapFallback(() => Results.NotFound());
 

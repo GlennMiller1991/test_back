@@ -26,9 +26,29 @@ public static class MessageValidator
     {
         var messageDto = context.GetArgument<MessageDto>(0);
 
-        if (!Regex.IsMatch(messageDto.Email, @"[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}", RegexOptions.IgnoreCase))
+        if (!string.IsNullOrEmpty(messageDto.Email) && string.IsNullOrEmpty(messageDto.Telegram))
         {
-            return Results.BadRequest(new Error("incorrect format"));
+            if (!Regex.IsMatch(messageDto.Email, @"[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}", RegexOptions.IgnoreCase))
+            {
+                return Results.BadRequest(new Error("incorrect format"));
+            }
+        }
+
+        return await next(context);
+    }
+
+    internal static async ValueTask<object?> ValidateTelegram(
+        EndpointFilterInvocationContext context,
+        EndpointFilterDelegate next)
+    {
+        var messageDto = context.GetArgument<MessageDto>(0);
+
+        if (!string.IsNullOrEmpty(messageDto.Telegram) && string.IsNullOrEmpty(messageDto.Email))
+        {
+            if (!Regex.IsMatch(messageDto.Telegram, @"\@[A-Z0-9_]{5,32}", RegexOptions.IgnoreCase))
+            {
+                return Results.BadRequest(new Error("incorrect format"));
+            }
         }
 
         return await next(context);
