@@ -8,14 +8,10 @@ using WebApplication1.Services.TgClient;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var origin = builder.Configuration.GetValue<string>("ORIGIN");
-if (string.IsNullOrEmpty(origin)) throw new Exception("Origin configuration is missing");
-
-var portfolioOrigin = new Origin("portfolio", origin);
-
+const string originPolicyName = "origin";
 builder.Services.AddCors(opts =>
 {
-    opts.AddPolicy(name: portfolioOrigin.Key, (policy) =>
+    opts.AddPolicy(originPolicyName, (policy) =>
     {
         policy
             .AllowAnyOrigin()
@@ -32,7 +28,7 @@ builder.Services.AddScoped<GuestEntryService>();
 var app = builder.Build();
 
 app.UseExceptionHandler("/api/v1/error");
-app.UseCors(portfolioOrigin.Key);
+app.UseCors(originPolicyName);
 
 app.MapGet("/api/v1/error", () => "Sorry! It seems that error is occured");
 app.MapGet("/api/v1", async (
@@ -73,7 +69,7 @@ app.MapGet("/api/v1", async (
 
 app.MapPost("/api/v1/messages", (MessageDto dto) =>
     {
-        string backRoute = !string.IsNullOrEmpty(dto.Telegram) ? dto.Telegram : 
+        string backRoute = !string.IsNullOrEmpty(dto.Telegram) ? dto.Telegram :
             !string.IsNullOrEmpty(dto.Email) ? dto.Email : "something went wrong";
         app.Services.GetService<IAdminNotifier>()
             ?.SendMessage($"{dto.Author} said: {dto.Body}\n\backRoute: {backRoute}");
