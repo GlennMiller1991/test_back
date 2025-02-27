@@ -8,6 +8,9 @@ using WebApplication1.Services.TgClient;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var db_path = builder.Configuration.GetValue<string>("DB_PATH");
+
+
 const string originPolicyName = "origin";
 builder.Services.AddCors(opts =>
 {
@@ -22,7 +25,8 @@ builder.Services.AddCors(opts =>
 
 builder.Services.AddSingleton<TgClient, TgClient>();
 builder.Services.AddSingleton<IAdminNotifier, TgAdminNotifier>();
-builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite("Data Source=temporarily.db"));
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite($"Data Source={db_path}"));
 builder.Services.AddScoped<GuestEntryService>();
 
 var app = builder.Build();
@@ -42,6 +46,8 @@ app.MapGet("/api/v1", async (
     {
         ip = context.Request.Headers["X-Real-IP"];
     }
+
+    ip = "hello";
 
     if (!string.IsNullOrEmpty(ip))
     {

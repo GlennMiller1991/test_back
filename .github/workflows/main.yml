@@ -1,3 +1,6 @@
+image_name: $image_name backend
+tgz: $tgz tgz_backend
+
 name: Main
 
 on:
@@ -15,16 +18,16 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build Docker image
-        run:  docker build -t ${{ vars.DOCKER_NAME }} .
+        run: docker compose build
 
       - name: Save image as archive
-        run:  docker save ${{ vars.DOCKER_NAME }} -o ${{ vars.ARCHIVE_NAME }}
+        run: docker save *image_name -o *tgz
 
       - name: Checkout archive
-        run: ls -lh ${{ vars.ARCHIVE_NAME }}
+        run: ls -lh *tgz
 
       - name: Set archive permissions
-        run: chmod 644 ${{ vars.ARCHIVE_NAME }}
+        run: chmod 644 *tgz
 
       - name: Replace archive on the VPS
         uses: appleboy/scp-action@v0.1.7
@@ -32,7 +35,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           password: ${{ secrets.VPS_KEY }}
-          source: ${{ vars.ARCHIVE_NAME }}
+          source: *tgz
           target: ${{ secrets.APP_HOME }}
 
       - name: Deploy on the VPS
@@ -42,18 +45,36 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           password: ${{ secrets.VPS_KEY }}
           script: |
-            docker load -i ${{ secrets.APP_HOME }}/${{ vars.ARCHIVE_NAME }}
+            docker load -i ${{ secrets.APP_HOME }}/*tgz
             
-            if [ "$(docker ps -q -f name=${{ vars.DOCKER_NAME }})" ] 
+            echo ${{ secrets.APP_HOME }}
+            
+            export BACKEND_WORKING_DIR=${{ secrets.APP_HOME }}
+            export BACKEND_ON_PORT=${{ secrets.APP_PORT }}
+            export TG_ADMIN_CHAT_ID=${{ secrets.ADMIN_TELEGRAM_CHAT_ID }}
+            export TG_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
+            export DB_PATH="${BACKEND_WORKING_DIR}/volume/temporarily.db"
+            export DB_VOLUME_SOURCE=/home/leha/Projects/docker-compose/volume
+            export DB_VOLUME_TARGET="${BACKEND_WORKING_DIR}/volume"
+            
+            if test $(docker ps -q -f name=backend) 
               then
-                docker stop ${{ vars.DOCKER_NAME }}
+                docker stop backend
             fi
-
-            if [ "$(docker ps -a -q -f name=${{ vars.DOCKER_NAME }})" ]
-               then
-                docker rm ${{ vars.DOCKER_NAME }}
-            fi
-
-            sleep 5
             
-            docker run --name ${{ vars.DOCKER_NAME }} -p ${{ secrets.DOCKER_MAPPED_PORT }}:${{ secrets.APP_PORT }} -d --rm ${{ vars.DOCKER_NAME }} ${{ secrets.ADMIN_TELEGRAM_CHAT_ID }} ${{ secrets.TELEGRAM_BOT_TOKEN }} --urls=http://[::]:${{ secrets.APP_PORT }}
+            if test $(docker ps -a -q -f name=backend)
+              then
+                docker rm backend
+            fi
+            
+            if ! test $(docker images -q sln-backend)
+              then
+                docker compose build
+            fi
+            
+            if test $(docker images -q sln-backend)
+              then
+                docker compose up -d
+              else
+                echo "Something went wrong"
+            fi

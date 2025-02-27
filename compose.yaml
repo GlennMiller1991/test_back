@@ -1,0 +1,19 @@
+services:
+  backend:
+    build: .
+    container_name: backend
+    working_dir: ${BACKEND_WORKING_DIR}
+    entrypoint:
+      - dotnet
+      - ./build/WebApplication1.dll
+      - --urls=http://[::]:${BACKEND_ON_PORT}
+      - ADMIN_TELEGRAM_CHAT_ID=${TG_ADMIN_CHAT_ID}
+      - telegram_bot_token=${TG_BOT_TOKEN}
+      - DB_PATH=${DB_PATH}
+    ports:
+      - "${BACKEND_ON_PORT}:${BACKEND_ON_PORT}"
+    restart: always
+    volumes:
+      - type: bind
+        source: ${DB_VOLUME_SOURCE}
+        target: ${DB_VOLUME_TARGET}
