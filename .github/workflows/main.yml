@@ -1,6 +1,3 @@
-image_name: $image_name backend
-tgz: $tgz tgz_backend
-
 name: Main
 
 on:
@@ -21,13 +18,13 @@ jobs:
         run: docker compose build
 
       - name: Save image as archive
-        run: docker save *image_name -o *tgz
+        run: docker save backend -o tgz_backend
 
       - name: Checkout archive
-        run: ls -lh *tgz
+        run: ls -lh tgz_backend
 
       - name: Set archive permissions
-        run: chmod 644 *tgz
+        run: chmod 644 tgz_backend
 
       - name: Replace archive on the VPS
         uses: appleboy/scp-action@v0.1.7
@@ -45,7 +42,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           password: ${{ secrets.VPS_KEY }}
           script: |
-            docker load -i ${{ secrets.APP_HOME }}/*tgz
+            docker load -i ${{ secrets.APP_HOME }}/tgz_backend
             
             echo ${{ secrets.APP_HOME }}
             
