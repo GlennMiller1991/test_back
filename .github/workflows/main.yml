@@ -35,7 +35,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           password: ${{ secrets.VPS_KEY }}
-          source: *tgz
+          source: tgz_backend
           target: ${{ secrets.APP_HOME }}
 
       - name: Deploy on the VPS
