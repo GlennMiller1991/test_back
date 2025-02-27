@@ -15,7 +15,9 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build Docker image
-        run: docker compose build
+        run: |
+          export BACKEND_ON_PORT=${{ secrets.APP_PORT }}
+          docker compose build
 
       - name: Save image as archive
         run: docker save backend -o tgz_backend
