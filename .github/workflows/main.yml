@@ -46,15 +46,13 @@ jobs:
           script: |
             docker load -i ${{ secrets.APP_HOME }}/tgz_backend
             
-            echo ${{ secrets.APP_HOME }}
-            
-            export BACKEND_WORKING_DIR=${{ secrets.APP_HOME }}
             export BACKEND_ON_PORT=${{ secrets.APP_PORT }}
             export TG_ADMIN_CHAT_ID=${{ secrets.ADMIN_TELEGRAM_CHAT_ID }}
             export TG_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
-            export DB_PATH="${BACKEND_WORKING_DIR}/volume/temporarily.db"
-            export DB_VOLUME_SOURCE=/home/leha/Projects/docker-compose/volume
+            export DB_VOLUME_SOURCE="${{ secrets.APP_HOME }}/volume"
+            export BACKEND_WORKING_DIR=/usr/app/back
             export DB_VOLUME_TARGET="${BACKEND_WORKING_DIR}/volume"
+            export DB_PATH="${DB_VOLUME_TARGET}/temporarily.db"
             
             if test $(docker ps -q -f name=backend) 
               then
