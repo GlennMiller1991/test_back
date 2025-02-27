@@ -20,10 +20,7 @@ jobs:
           docker compose build
 
       - name: Save image as archive
-        run: |
-          docker images
-          
-          docker save backend -o tgz_backend
+        run: docker save test_back-backend -o tgz_backend
 
       - name: Checkout archive
         run: ls -lh tgz_backend
