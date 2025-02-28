@@ -1,5 +1,6 @@
 services:
   backend:
+    image: backend
     build: .
     container_name: backend
     working_dir: ${BACKEND_WORKING_DIR}

@@ -64,14 +64,14 @@ jobs:
                 docker rm backend
             fi
             
-            if ! test $(docker images -q sln-backend)
+            if ! test $(docker images -q backend)
               then
                 docker compose build
             fi
             
-            if test $(docker images -q sln-backend)
+            if test $(docker images -q backend)
               then
-                docker compose up -d
+                docker compose up backend -d
               else
                 echo "Something went wrong"
             fi
