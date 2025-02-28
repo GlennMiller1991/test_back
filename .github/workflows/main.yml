@@ -28,7 +28,7 @@ jobs:
         run: ls -lh backend.tar.gz
 
       - name: Set archive permissions
-        run: chmod 644 tgz_backend
+        run: chmod 644 backend.tar.gz
 
       - name: Replace archive on the VPS
         uses: appleboy/scp-action@v0.1.7
