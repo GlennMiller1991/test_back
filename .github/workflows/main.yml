@@ -25,7 +25,7 @@ jobs:
           tar -czvf backend.tar.gz backend.tar compose.yaml
 
       - name: Checkout archive
-        run: ls -lh tgz_backend
+        run: ls -lh backend.tar.gz
 
       - name: Set archive permissions
         run: chmod 644 tgz_backend
