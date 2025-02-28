@@ -20,7 +20,9 @@ jobs:
           docker compose build
 
       - name: Save image as archive
-        run: docker save backend -o tgz_backend
+        run: |
+          docker save backend -o backend.tar
+          tar -czvf backend.tar.gz backend.tar compose.yaml
 
       - name: Checkout archive
         run: ls -lh tgz_backend
@@ -34,7 +36,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           password: ${{ secrets.VPS_KEY }}
-          source: tgz_backend
+          source: backend.tar.gz
           target: ${{ secrets.APP_HOME }}
 
       - name: Deploy on the VPS
@@ -44,8 +46,10 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           password: ${{ secrets.VPS_KEY }}
           script: |
-            docker load -i ${{ secrets.APP_HOME }}/tgz_backend
-            
+            cd ${{ secrets.APP_HOME }}
+            tar -xzvf backend.tar.gz
+            docker load -i backend.tar
+              
             export BACKEND_ON_PORT=${{ secrets.APP_PORT }}
             export TG_ADMIN_CHAT_ID=${{ secrets.ADMIN_TELEGRAM_CHAT_ID }}
             export TG_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -63,15 +67,5 @@ jobs:
               then
                 docker rm backend
             fi
-            
-            if ! test $(docker images -q backend)
-              then
-                docker compose build
-            fi
-            
-            if test $(docker images -q backend)
-              then
-                docker compose up backend -d
-              else
-                echo "Something went wrong"
-            fi
+  
+            docker compose up -d          
