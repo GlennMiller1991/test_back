@@ -47,8 +47,6 @@ app.MapGet("/api/v1", async (
         ip = context.Request.Headers["X-Real-IP"];
     }
 
-    ip = "hello";
-
     if (!string.IsNullOrEmpty(ip))
     {
         var guestEntry = await entryService.GetGuestEntry(ip);
