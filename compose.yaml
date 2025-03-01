@@ -12,7 +12,7 @@ services:
       - telegram_bot_token=${TG_BOT_TOKEN}
       - DB_PATH=${DB_PATH}
     ports:
-      - "${6000}:${6000}"
+      - "6000:6000"
     restart: always
     volumes:
       - type: bind
