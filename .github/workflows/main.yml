@@ -64,7 +64,7 @@ jobs:
                 docker rm backend
             fi
             
-            if test $(docker images backend)
+            if test $(docker images backend -q)
               then
                 docker rmi backend      
             fi
