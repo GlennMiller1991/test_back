@@ -7,12 +7,12 @@ services:
     entrypoint:
       - dotnet
       - ./build/WebApplication1.dll
-      - --urls=http://[::]:${BACKEND_ON_PORT}
+      - --urls=http://[::]:6000
       - ADMIN_TELEGRAM_CHAT_ID=${TG_ADMIN_CHAT_ID}
       - telegram_bot_token=${TG_BOT_TOKEN}
       - DB_PATH=${DB_PATH}
     ports:
-      - "${BACKEND_ON_PORT}:${BACKEND_ON_PORT}"
+      - "${6000}:${6000}"
     restart: always
     volumes:
       - type: bind

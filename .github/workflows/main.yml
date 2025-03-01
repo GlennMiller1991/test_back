@@ -15,9 +15,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build Docker image
-        run: |
-          export BACKEND_ON_PORT=${{ secrets.APP_PORT }}
-          docker compose build
+        run: docker compose build
 
       - name: Save image as archive
         run: |
@@ -48,9 +46,7 @@ jobs:
           script: |
             cd ${{ secrets.APP_HOME }}
             tar -xzvf backend.tar.gz
-            docker load -i backend.tar
-              
-            export BACKEND_ON_PORT=${{ secrets.APP_PORT }}
+            
             export TG_ADMIN_CHAT_ID=${{ secrets.ADMIN_TELEGRAM_CHAT_ID }}
             export TG_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
             export DB_VOLUME_SOURCE="${{ secrets.APP_HOME }}/volume"
@@ -67,5 +63,10 @@ jobs:
               then
                 docker rm backend
             fi
-  
+            
+            if test $(docker images backend)
+              then
+                docker rmi backend            
+
+            docker load -i backend.tar
             docker compose up -d          
